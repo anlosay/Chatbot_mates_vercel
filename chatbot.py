@@ -82,7 +82,6 @@ def chatbot_matematicas(historial, pregunta):
     model = genai.GenerativeModel(
         model_name="gemini-2.0-flash",
         generation_config=generation_config,
-        system_instruction=system_instruction,
     )
     
     response = model.generate_content(pregunta)
@@ -92,7 +91,7 @@ def chatbot_matematicas(historial, pregunta):
     
     return historial, ""
 
-# Interfaz Gradio optimizada
+# Interfaz Gradio optimizada para Vercel
 with gr.Blocks(theme=gr.themes.Default()) as demo:
     gr.Markdown("# 🤖 Chatbot de Matemáticas con Gemini 📐")
     chat_history = gr.Chatbot()
@@ -101,5 +100,5 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
 
     send_button.click(chatbot_matematicas, inputs=[chat_history, pregunta_input], outputs=[chat_history, pregunta_input])
 
-demo.launch()
-
+# 🔹 Lanza el servidor Gradio en modo público sin servidor backend
+demo.launch(share=True)
