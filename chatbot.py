@@ -1,17 +1,15 @@
 import gradio as gr
 import google.generativeai as genai
 import os
-import json
-from datetime import datetime
 
-# 📌 Configurar la clave de API de Google AI Studio (Gemini)
+# Configurar API de Gemini
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     raise ValueError("No se encontró la clave de API en las variables de entorno.")
 
 genai.configure(api_key=api_key)
 
-# 📌 Parámetros del modelo
+# Parámetros del modelo
 generation_config = {
     "temperature": 1,
     "top_p": 0.95,
@@ -20,7 +18,7 @@ generation_config = {
     "response_mime_type": "text/plain",
 }
 
-# 📌 Instrucciones para el modelo
+# Instrucciones para el modelo
 system_instruction = """
 Por favor, en todas tus respuestas, todas las expresiones matemáticas DEBEN mostrarse como bloques en LaTeX usando el formato:
 $$
@@ -80,7 +78,6 @@ Además, si la pregunta incluye textos o expresiones no matemáticas, respóndel
    - Si el usuario pregunta algo fuera de matemáticas, responde que solo asistes en temas matemáticos.
 """
 
-# 📌 Función del chatbot
 def chatbot_matematicas(historial, pregunta):
     model = genai.GenerativeModel(
         model_name="gemini-2.0-flash",
@@ -88,31 +85,21 @@ def chatbot_matematicas(historial, pregunta):
         system_instruction=system_instruction,
     )
     
-    prompt_completo = "\n".join(historial) + f"\n👤 Usuario: {pregunta}"
-    response = model.generate_content(prompt_completo)
+    response = model.generate_content(pregunta)
     respuesta_texto = response.text if response.text else "No pude generar una respuesta."
     
-    historial.append(f"👤 Usuario: {pregunta}")
-    historial.append(f"🤖 Chatbot: {respuesta_texto}")
+    historial.append((f"👤 Usuario: {pregunta}", f"🤖 Chatbot: {respuesta_texto}"))
     
     return historial, ""
 
-# 📌 Interfaz mejorada estilo ChatGPT
-def iniciar_chatbot():
-    with gr.Blocks(theme=gr.themes.Default()) as demo:
-        gr.Markdown("""
-        # 🤖 Chatbot de Matemáticas con Gemini 📐
-        ¡Pregunta cualquier cosa sobre matemáticas y recibirás una respuesta con LaTeX!
-        """)
-        
-        chat_history = gr.Chatbot()
-        pregunta_input = gr.Textbox(placeholder="Escribe tu pregunta aquí...")
-        send_button = gr.Button("Enviar")
-        
-        send_button.click(chatbot_matematicas, inputs=[chat_history, pregunta_input], outputs=[chat_history, pregunta_input])
-        
-    return demo
+# Interfaz Gradio optimizada
+with gr.Blocks(theme=gr.themes.Default()) as demo:
+    gr.Markdown("# 🤖 Chatbot de Matemáticas con Gemini 📐")
+    chat_history = gr.Chatbot()
+    pregunta_input = gr.Textbox(placeholder="Escribe tu pregunta aquí...")
+    send_button = gr.Button("Enviar")
 
-# 📌 Lanzar el chatbot
-demo = iniciar_chatbot()
+    send_button.click(chatbot_matematicas, inputs=[chat_history, pregunta_input], outputs=[chat_history, pregunta_input])
+
 demo.launch()
+
